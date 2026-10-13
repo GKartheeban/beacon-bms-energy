@@ -1,0 +1,16 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+
+# Office temporary files
+~$*
+*.tmp
+
+# Secrets
+.env
+*.env
+
+# Dependencies
+node_modules/

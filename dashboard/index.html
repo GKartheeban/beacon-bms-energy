@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BEACON · Building Energy Analytics</title>
+  <meta name="description" content="Energy management hypervision demo for BMS-equipped buildings. Simulated data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;600;700&family=Red+Hat+Mono:wght@400;500&family=Red+Hat+Text:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    /* apply the saved theme before the page draws, to avoid a flash */
+    try { const t = localStorage.getItem("eh-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+  </script>
+</head>
+<body>
+
+  <!-- ===================== LOGIN ===================== -->
+  <section id="view-login" class="login" hidden>
+    <div class="login-brand">
+      <div class="brand brand-on-dark">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+        </div>
+        <span class="brand-name">BEACON</span>
+      </div>
+      <div class="login-hero">
+        <h2>Every building's energy, in one place.</h2>
+        <p>Live energy monitoring and efficiency insights for your BMS-equipped buildings.</p>
+      </div>
+      <!-- a day's load profile, drawn as the product's signature -->
+      <svg class="login-curve" viewBox="0 0 480 160" preserveAspectRatio="none" aria-hidden="true">
+        <g class="lc-grid">
+          <line x1="0" y1="40" x2="480" y2="40"/><line x1="0" y1="80" x2="480" y2="80"/><line x1="0" y1="120" x2="480" y2="120"/>
+        </g>
+        <path class="lc-base" d="M0 128 C40 128 60 126 90 120 S140 70 180 58 S260 50 300 56 S360 84 390 110 S450 126 480 126"/>
+        <path class="lc-area" d="M0 118 C40 118 60 116 90 108 S140 52 180 40 S260 30 300 38 S360 70 390 98 S450 112 480 112 L480 160 L0 160 Z"/>
+        <path class="lc-line" d="M0 118 C40 118 60 116 90 108 S140 52 180 40 S260 30 300 38 S360 70 390 98 S450 112 480 112"/>
+      </svg>
+      <p class="login-brand-foot">Readings every 15 minutes from each building's edge gateway.</p>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="login-intro">
+          <h1>Sign in</h1>
+          <p>Use your account, or pick a demo role.</p>
+        </div>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="login-user">Username</label>
+            <input class="input" id="login-user" name="username" autocomplete="username" placeholder="e.g. manager">
+          </div>
+          <div class="field">
+            <label for="login-pass">Password</label>
+            <input class="input" id="login-pass" name="password" type="password" autocomplete="current-password" placeholder="demo">
+          </div>
+          <p class="login-error" id="login-error" role="alert" hidden></p>
+          <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+        </form>
+
+        <div class="divider">or sign in with a demo role</div>
+        <div class="role-list" id="role-list"></div>
+
+        <p class="login-foot">Demo with simulated data. Not connected to a real BMS.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== APP ===================== -->
+  <div id="view-app" class="shell" hidden>
+    <header class="header">
+      <!-- row 1: brand, view switch, theme, account -->
+      <div class="header-top">
+        <div class="bar-inner">
+          <div class="brand brand-on-dark">
+            <div class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+            </div>
+            <span class="brand-name">BEACON</span>
+            <span class="badge" title="All data on this site is simulated">Demo</span>
+          </div>
+
+          <div class="header-actions">
+            <div class="segmented view-switch" role="group" aria-label="Data view">
+              <button type="button" id="mode-raw" aria-pressed="false">Raw data</button>
+              <button type="button" id="mode-kpi" class="is-kpi" aria-pressed="true">KPI view</button>
+            </div>
+            <button class="btn btn-icon btn-on-dark" id="theme-toggle" type="button" aria-label="Switch light / dark theme" title="Switch light / dark theme">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            </button>
+            <div class="user-menu">
+              <button class="user-btn" id="user-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+                <span class="avatar" id="user-initials">PM</span>
+                <span class="who"><b id="user-name">-</b><small id="user-role">-</small></span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown" id="user-dropdown" role="menu" hidden>
+                <div class="dd-head">
+                  <b id="dd-name">-</b>
+                  <div class="muted dd-role" id="dd-role">-</div>
+                  <div class="muted dd-access" id="dd-access">-</div>
+                </div>
+                <button class="btn btn-ghost" id="logout" type="button" role="menuitem">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                  Sign out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- row 2: page menu -->
+      <div class="menubar">
+        <div class="bar-inner">
+          <nav class="nav" id="nav" aria-label="Pages"></nav>
+        </div>
+      </div>
+
+      <!-- row 3: building, simulated time, play / pause, speed, gateways -->
+      <div class="contextbar">
+        <div class="bar-inner">
+          <div class="ctx-group">
+            <label class="ctx-label" for="scope">Building</label>
+            <select class="select select-sm" id="scope"></select>
+          </div>
+          <span class="ctx-sep" aria-hidden="true"></span>
+          <div class="live" aria-label="Simulation">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="ctx-label">Simulated time</span>
+            <span class="clock-time" id="clock">-</span>
+            <button class="btn btn-sm btn-ghost" id="play" type="button" aria-label="Pause simulation">
+              <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor" hidden><path d="M8 5v14l11-7z"/></svg>
+              <span id="play-label">Pause</span>
+            </button>
+            <label class="sr-only" for="speed">Simulation speed</label>
+            <select class="select select-sm select-bare" id="speed" title="Simulation speed. At 1×, one 15-minute reading arrives every 4 seconds.">
+              <option value="4000">Speed 1×</option>
+              <option value="1000">Speed 4×</option>
+              <option value="250">Speed 16×</option>
+            </select>
+          </div>
+          <div class="gw-list" id="gateways" aria-label="Gateway status"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main" id="page"></main>
+    <p class="footer-note">Demo with simulated data. Readings arrive every 15 simulated minutes, as they would from the edge gateways in each building.</p>
+  </div>
+
+  <!-- libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <!-- app -->
+  <script src="js/data.js"></script>
+  <script src="js/simulator.js"></script>
+  <script src="js/kpi.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/report.js"></script>
+  <!-- pages -->
+  <script src="js/pages/overview.js"></script>
+  <script src="js/pages/building.js"></script>
+  <script src="js/pages/system.js"></script>
+  <script src="js/pages/faults.js"></script>
+  <script src="js/pages/insights.js"></script>
+  <script src="js/pages/reports.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
